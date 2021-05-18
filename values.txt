@@ -1,0 +1,9 @@
+Horizontal:
+    Normal:()
+    Left:()
+    Right:()
+
+Vertical:
+    Normal: ()
+    Top: ()
+    Bottom: ()

@@ -1,7 +1,9 @@
 import cv2
+# dlib is a library that will help us perform shape-prediction(landmarks detection) on the image
 import dlib 
 import numpy as np
-import pyautogui
+# pyautogui will help us control the cursor
+import pyautogui as cursor
 
 # midpoint of two points
 def getMidPoint(p1, p2):
@@ -10,10 +12,6 @@ def getMidPoint(p1, p2):
 # instantiating our face detector and dlib-68 shape predictor
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-
-# setting up video capture and pyautogui
-cap = cv2.VideoCapture(0)
-screen_size = pyautogui.size()
 
 # method to get the gaze-ratio and detect whether eye is looking left or right and up or down
 def getGazeRatios(points, landmarks):
@@ -61,6 +59,60 @@ def getGazeRatios(points, landmarks):
     return (horizontal_gaze_ratio, vertical_gaze_ratio)
 
 
+# utility functions to get gaze directions
+def horizontal(horizontal_ratio):
+    # -1 = left, 1 = right, 0 = neutral
+
+    if horizontal_ratio < 0.1:
+        return 1
+    
+    #elif horizontal_ratio > 1.1:
+        #return -1
+
+    else:
+        return 0
+
+def vertical(vertical_ratio):
+    # -1 = up, 1 = down, 0 = neutral
+
+    if vertical_ratio < 0.3:
+        return 1
+    
+    #elif vertical_ratio > 2.0:
+        #return -1
+
+    else:
+        return 0
+
+
+# computes the final gaze direction
+def moveCursor(horizontal, vertical):
+
+    if(horizontal == 0 and vertical == 0):
+        return
+
+    elif(horizontal == 0 and vertical == 1):
+        cursor.moveRel(0, 100, duration = 2)
+        return
+
+    elif(horizontal == 0 and vertical == -1):
+        cursor.moveRel(0, -100, duration = 2)
+        return
+
+    elif(horizontal == 1 and vertical == 0):
+        cursor.moveRel(100, 0, duration = 2)
+        return
+
+    elif(horizontal == -1 and vertical == 0):
+        cursor.moveRel(-100, 0, duration = 2)
+        return
+
+    else:
+        return
+
+# setting up video capture
+cap = cv2.VideoCapture(0)
+
 while(True):
 
     # reading from the webcam
@@ -85,18 +137,19 @@ while(True):
         horizontal_ratio = (left_ratios[0] + right_ratios[0]) / 2
         vertical_ratio = (left_ratios[1] + right_ratios[1]) / 2
 
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(frame, str(horizontal_ratio), (50, 100), font, 1, (0,0,255), 3)
-        cv2.putText(frame, str(vertical_ratio), (50, 150), font, 1, (0,0,255), 3)
-    
-    # showing the current frame
-    cv2.imshow("frame", frame)
+        # controlling the cursor according to gaze-ratios, values were taken by observations
+        horizontal_dir = horizontal(horizontal_ratio)
+        vertical_dir = vertical(vertical_ratio)
+
+        # moving the cursor accordingly
+        moveCursor(horizontal_dir, vertical_dir)
+
+    # ending the capture if 'q' is hit
     if cv2.waitKey(1) == ord('q'):
         break
 
 # closing all windows upon exit()
 cap.release()
-cv2.destroyAllWindows()
 
 
 
