@@ -63,11 +63,11 @@ def getGazeRatios(points, landmarks):
 def horizontal(horizontal_ratio):
     # -1 = left, 1 = right, 0 = neutral
 
-    if horizontal_ratio < 0.1:
+    if horizontal_ratio > 1.3:
+        return -1
+
+    elif horizontal_ratio < 0.7:
         return 1
-    
-    #elif horizontal_ratio > 1.1:
-        #return -1
 
     else:
         return 0
@@ -75,11 +75,11 @@ def horizontal(horizontal_ratio):
 def vertical(vertical_ratio):
     # -1 = up, 1 = down, 0 = neutral
 
-    if vertical_ratio < 0.3:
+    if vertical_ratio < 1.1:
         return 1
     
-    #elif vertical_ratio > 2.0:
-        #return -1
+    elif vertical_ratio > 2.1:
+        return -1
 
     else:
         return 0
@@ -87,28 +87,34 @@ def vertical(vertical_ratio):
 
 # computes the final gaze direction
 def moveCursor(horizontal, vertical):
-
+    
+    # gaze is level on both axes
     if(horizontal == 0 and vertical == 0):
         return
 
+    # gaze is down
     elif(horizontal == 0 and vertical == 1):
         cursor.moveRel(0, 100, duration = 2)
         return
 
+    # gaze is up
     elif(horizontal == 0 and vertical == -1):
         cursor.moveRel(0, -100, duration = 2)
         return
 
+    # gaze is right
     elif(horizontal == 1 and vertical == 0):
         cursor.moveRel(100, 0, duration = 2)
         return
 
+    # gaze is left
     elif(horizontal == -1 and vertical == 0):
         cursor.moveRel(-100, 0, duration = 2)
         return
 
     else:
         return
+
 
 # setting up video capture
 cap = cv2.VideoCapture(0)
@@ -137,14 +143,19 @@ while(True):
         horizontal_ratio = (left_ratios[0] + right_ratios[0]) / 2
         vertical_ratio = (left_ratios[1] + right_ratios[1]) / 2
 
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        #cv2.putText(frame, str(horizontal_ratio), (50, 100), font, 1, (0,0,255), 3)
+        cv2.putText(frame, str(vertical_ratio), (50, 150), font, 1, (0,0,255), 3)
+
         # controlling the cursor according to gaze-ratios, values were taken by observations
         horizontal_dir = horizontal(horizontal_ratio)
         vertical_dir = vertical(vertical_ratio)
 
         # moving the cursor accordingly
-        moveCursor(horizontal_dir, vertical_dir)
+        moveCursor(horizontal_ratio, vertical_dir)
 
     # ending the capture if 'q' is hit
+    #cv2.imshow("current-frame", frame)
     if cv2.waitKey(1) == ord('q'):
         break
 
