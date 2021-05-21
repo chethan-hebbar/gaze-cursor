@@ -2,7 +2,7 @@
 
 ### Requirements:
 * **pip3 install opencv-python**
-* Installing dlib, link can be found here: 
+* Installing dlib, link can be found here: https://www.pyimagesearch.com/2018/01/22/install-dlib-easy-complete-guide/
 * **pip3 install pyautogui**
 
 ### Running the application:
