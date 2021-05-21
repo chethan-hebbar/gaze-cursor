@@ -1,7 +1,0 @@
-Horizontal:
-    Left: > 1.3
-    Right: < 0.7
-
-Vertical:
-    Top: > 2.1
-    Bottom: < 1.1
