@@ -4,6 +4,9 @@ import numpy as np
 import os
 import pyautogui as cursor
 import operator
+from imutils.video import FileVideoStream
+import time
+import imutils
 
 # loading our face-detector and shape predictor
 face_detector = dlib.get_frontal_face_detector()
@@ -24,11 +27,14 @@ def getDiff(points, landmarks, image, gray_image):
                         (landmarks.part(points[4]).x, landmarks.part(points[4]).y),
                         (landmarks.part(points[5]).x, landmarks.part(points[5]).y)], np.int32)
 
+    # a mask of same size of gray frame, filling it with 0
     height, width, _ = image.shape
     mask = np.zeros((height,width), np.uint8)
 
+    # draw a polygon on the mask according to the landmarks and fill it with white
     cv2.polylines(mask, [eye_region], True, 255, 2)
     cv2.fillPoly(mask, [eye_region], 255)
+    # peforming pixel wise and, only gives us the eye-region from the original gray frame
     eye = cv2.bitwise_and(gray_image, gray_image, mask=mask)
 
     min_x = np.min(eye_region[:, 0])
@@ -36,8 +42,10 @@ def getDiff(points, landmarks, image, gray_image):
     min_y = np.min(eye_region[:, 1])
     max_y = np.max(eye_region[:, 1])
 
-    # gray eye contains the eye in grayscale
+    # isolating the eye using landmarks from eye_region
     gray_eye = eye[min_y: max_y, min_x: max_x]
+
+    # performing median blur to reduce noise, gaussian blur can also be used
     gray_eye = cv2.medianBlur(gray_eye, 5)
 
     # center of gray_eye
@@ -89,15 +97,18 @@ def moveCursor(right, left):
 
 
 # getting the webcam ready 
-webcam = cv2.VideoCapture(0)
-while(True):
+fvs = FileVideoStream(0).start()
+time.sleep(1.0)
+
+while fvs.more():
 
     # reading frame and converting it to grayscale
-    _, image = webcam.read()
+    image = fvs.read()
+    image = imutils.resize(image, width=450)
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # face detection using HOG->SVM
-    faces = face_detector(image)
+    faces = face_detector(gray_image)
 
     for face in faces:
         # getting the landmarks
